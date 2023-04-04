@@ -101,6 +101,10 @@
         connect_with_twitch();
     });
 
+    input_discord_webhook.addEventListener("oninput", (event) => {
+        set_cookie("webhook", event.target.value);
+    });
+
     on_load();
     
 </script>
