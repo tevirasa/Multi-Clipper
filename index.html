@@ -20,14 +20,15 @@
     </body>
 </html>
 <script>
+    const client_id = "fzqu79gr25rwb3mo7yy7yh42q9nwmf";
+    let access_token = "";
+
     const button_connect_twitch = document.getElementById("connect-twitch");
     const button_clip = document.getElementById("clip");
     const textarea_twitch_channels = document.getElementById("twitch-channels");
     const span_connected = document.getElementById("connected");
     const input_discord_webhook = document.getElementById("discord-webhook");
 
-    let access_token = "";
-    let valid = false;
 
     async function get_cookie(name) {
         let cookie = await cookieStore.get(name);
@@ -51,7 +52,6 @@
 
     async function connect_with_twitch() {
         const url = "https://tevirasa.github.io/Multi-Clipper/";
-        const client_id = "fzqu79gr25rwb3mo7yy7yh42q9nwmf";
         const state = generate_state();
         const href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=${url}&scope=clips%3Aedit&state=${state}`;
         await set_cookie("state", state);
@@ -85,6 +85,8 @@
 
     async function on_load()
     {
+        let valid = false;
+
         if (!valid && (access_token = await get_cookie("access_token"))) {
             valid = await validate_twitch(access_token);
         }
@@ -95,6 +97,42 @@
         
         update_valid(valid);
         set_cookie("access_token", valid ? access_token : "");
+    }
+
+    async function get_users(names) {
+        const url = `https://api.twitch.tv/helix/users?${names.map(name => "login=" + name).join("&")}`;
+        const response = await fetch(url, {
+            method: "GET",
+            headers: { 
+                "Authorization": "Bearer " + access_token, 
+                "Client-Id": client_id 
+            },
+        });
+        const json = await response.json();
+        return json.data.map(x => { return {"id": x.id, "name": x.login}; });
+    }
+
+    async function make_clip(user) {
+        const url = `https://api.twitch.tv/helix/clips?broadcaster_id=${user.id}`;
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { 
+                    "Authorization": "Bearer " + access_token, 
+                    "Client-Id": client_id 
+                },
+            });
+            const json = await response.json();
+            return { "name": user.name, "clip": "https://clips.twitch.tv/" + json.data[0].id };
+        } catch {
+            return { "name": user.name, "clip": "" };
+        }
+    }
+
+    async function make_clips(names) {
+        const users = await get_users(names);
+        let results = await Promise.all(users.map(make_clip));
+        return results;
     }
     
     button_connect_twitch.addEventListener("click", (event) => {
