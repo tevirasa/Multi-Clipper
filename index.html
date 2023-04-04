@@ -84,7 +84,7 @@
             valid = await validate_twitch(access_token);
         }
 
-        if (!valid && (access_token = check_params_access_token())) {
+        if (!valid && (access_token = await check_params_access_token())) {
             valid = await validate_twitch(access_token);
         }
         
