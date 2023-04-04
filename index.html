@@ -26,17 +26,21 @@
     const span_connected = document.getElementById("connected");
     const input_discord_webhook = document.getElementById("discord-webhook");
 
+    let cookies = get_cookies();
     let access_token = "";
     let valid = false;
 
-    function get_cookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+    function get_cookies() {
+        return Object.fromEntries(document.cookie.split('; ').map(c => c.split('=')))
+    }
+
+    function set_cookies(cookies) {
+        document.cookie = cookies.map((k, v) => k + "=" + v).join("; ") + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; Secure";
     }
 
     function set_cookie(name, value) {
-        document.cookie = `${name}=${value}; expires=Fri, 31 Dec 9999 23:59:59 GMT; Secure`;
+        cookies[name] = value;
+        set_cookies(cookies);
     }
 
     function generate_state() {
@@ -69,7 +73,7 @@
         const url_fragment = new URLSearchParams(window.location.hash);
         const params = Object.fromEntries(url_fragment.entries());
         if ("#access_token" in params) {
-            if ("state" in params && params["state"] == get_cookie("state")) {
+            if ("state" in params && params["state"] == cookies["state"]) {
                 return params["#access_token"];
             }
         }
@@ -78,7 +82,7 @@
 
     async function on_load()
     {
-        if (!valid && (access_token = get_cookie("access_token"))) {
+        if (!valid && (access_token = cookies["access_token"])) {
             valid = await validate_twitch(access_token);
         }
 
