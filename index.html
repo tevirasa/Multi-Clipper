@@ -74,12 +74,13 @@
     async function check_params_access_token() {
         const url_fragment = new URLSearchParams(window.location.hash);
         const params = Object.fromEntries(url_fragment.entries());
+        let result = "";
         if ("#access_token" in params) {
             if ("state" in params && params["state"] == await get_cookie("state")) {
-                return params["#access_token"];
+                result = params["#access_token"];
             }
         }
-        return "";
+        return result;
     }
 
     async function on_load()
