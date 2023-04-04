@@ -17,6 +17,9 @@
         <p>
             <button id="clip">Clip</button>
         </p>
+        <p>
+            <div id="clip-results"></div>
+        </p>
     </body>
 </html>
 <script>
@@ -28,6 +31,7 @@
     const textarea_twitch_channels = document.getElementById("twitch-channels");
     const span_connected = document.getElementById("connected");
     const input_discord_webhook = document.getElementById("discord-webhook");
+    const div_clip_results = document.getElementById("clip-results");
 
 
     async function get_cookie(name) {
@@ -97,6 +101,8 @@
         
         update_valid(valid);
         set_cookie("access_token", valid ? access_token : "");
+
+        input_discord_webhook.value = await get_cookie("webhook");
     }
 
     async function get_users(names) {
@@ -130,13 +136,28 @@
     }
 
     async function make_clips(names) {
+        if (names.length <= 0) return;
         const users = await get_users(names);
         let results = await Promise.all(users.map(make_clip));
         return results;
     }
+
+    function get_channel_names() {
+        return textarea_twitch_channels.value.split("\n").map(x => x.trim());
+    }
+
+    function populate_clips(clips) {
+        div_clip_results.innerHTML = clips.map(clip => `${clip.name}: <a href="${clip.clip}">${clip.clip}</a>`).join("<br>")
+    }
     
     button_connect_twitch.addEventListener("click", (event) => {
         connect_with_twitch();
+    });
+
+    button_clip.addEventListener("click", async (event) => {
+        const names = get_channel_names();
+        const clips = await make_clips(names);
+        populate_clips(clips);
     });
 
     input_discord_webhook.addEventListener("change", (event) => {
