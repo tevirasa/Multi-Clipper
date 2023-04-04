@@ -4,5 +4,96 @@
     </head>
     <body>
         <h1>Multi Clipper</h1>
+        <p>
+            <button id="connect-twitch">Connect with Twitch</button><span id="connected">Connected</span>
+        </p>
+        <p>
+            <textarea id="twitch-channels" name="twitch-channels" cols="40" rows="8"></textarea>
+        </p>
+        <p>
+            <label for="discord-webhook">Discord Webhook URL</label>
+            <input id="discord-webhook" name="discord-webhook" type="text">
+        </p>
+        <p>
+            <button id="clip">Clip</button>
+        </p>
     </body>
 </html>
+<script>
+    const button_connect_twitch = document.getElementById("connect-twitch");
+    const button_clip = document.getElementById("clip");
+    const textarea_twitch_channels = document.getElementById("twitch-channels");
+    const span_connected = document.getElementById("connected");
+    const input_discord_webhook = document.getElementById("discord-webhook");
+
+    let access_token = "";
+    let valid = false;
+
+    function get_cookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function set_cookie(name, value) {
+        document.cookie = `${name}=${value}; expires=Fri, 31 Dec 9999 23:59:59 GMT; Secure`;
+    }
+
+    function generate_state() {
+        return crypto.getRandomValues(new Uint8Array(32)).map(x => x % 10).join("");
+    }
+
+    function connect_with_twitch() {
+        const url = "https://tevirasa.github.io/Multi-Clipper/";
+        const client_id = "fzqu79gr25rwb3mo7yy7yh42q9nwmf";
+        const state = generate_state();
+        const href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=${url}&scope=clips%3Aedit&state=${state}`;
+        set_cookie("state", state);
+        window.location.href = href;
+    }
+
+    async function validate_twitch(access_token) {
+        const url = "https://id.twitch.tv/oauth2/validate";
+        const response = await fetch(url, {
+            headers: { "Authorization": "OAuth " + access_token },
+        });
+        return response.status == 200;
+    }
+
+    function update_valid(valid) {
+        span_connected.style.color = valid ? "green" : "red";
+        span_connected.textContent = valid ? "Connected" : "Disconnected";
+    }
+
+    function check_params_access_token() {
+        const url_fragment = new URLSearchParams(window.location.hash);
+        const params = Object.fromEntries(url_fragment.entries());
+        if ("#access_token" in params) {
+            if ("state" in params && params["state"] == get_cookie(state)) {
+                return params["#access_token"];
+            }
+        }
+        return "";
+    }
+
+    async function on_load()
+    {
+        if (!valid && (access_token = get_cookie("access_token"))) {
+            valid = await validate_twitch(access_token);
+        }
+
+        if (!valid && (access_token = check_params_access_token())) {
+            valid = await validate_twitch(access_token);
+        }
+        
+        update_valid(valid);
+        console.log(access_token);
+    }
+    
+    button_connect_twitch.addEventListener("click", (event) => {
+        connect_with_twitch();
+    });
+
+    on_load();
+    
+</script>
