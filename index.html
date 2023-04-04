@@ -1,6 +1,50 @@
 <html>
     <head>
         <title>Multi Clipper</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                font-size: 18pt;
+                font-family: sans-serif;
+                max-width: 650px;
+                line-height: 1.6;
+                color: #ddd;
+                margin: 20px 200px;
+                background: #111;
+            }
+            @media (max-width: 850px) {
+                body {
+                    margin: 20px;
+                }
+            }
+            textarea {
+                font-size: 18pt;
+                font-family: sans-serif;
+                width: 100%;
+            }
+            input {
+                font-size: 18pt;
+                font-family: sans-serif;
+            }
+            h1,h2,h3 {
+                line-height: 1.2;
+            }
+            button {
+                font-size: 22pt;
+                font-family: sans-serif;
+                padding-left: 1em;
+                padding-right: 1em;
+            }
+            #connected {
+                margin-left: 1em;
+            }
+            #discord-webhook {
+                margin-left: 1em;
+            }
+            #clip-results {
+                background: #222;
+            }
+        </style>
     </head>
     <body>
         <h1>Multi Clipper</h1>
@@ -8,7 +52,7 @@
             <button id="connect-twitch">Connect with Twitch</button><span id="connected"></span>
         </p>
         <p>
-            <textarea id="twitch-channels" name="twitch-channels" cols="40" rows="8"></textarea>
+            <textarea id="twitch-channels" name="twitch-channels" rows="8"></textarea>
         </p>
         <p>
             <label for="discord-webhook">Discord Webhook URL</label>
@@ -34,11 +78,11 @@
     const div_clip_results = document.getElementById("clip-results");
 
 
-    async function get_cookie(name) {
+    async function get_value(name) {
         return localStorage.getItem(name);
     }
 
-    async function set_cookie(name, value) {
+    async function set_value(name, value) {
         localStorage.setItem(name, value);
     }
 
@@ -50,7 +94,7 @@
         const url = "https://tevirasa.github.io/Multi-Clipper/";
         const state = generate_state();
         const href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=${url}&scope=clips%3Aedit&state=${state}`;
-        await set_cookie("state", state);
+        await set_value("state", state);
         window.location.href = href;
     }
 
@@ -72,7 +116,7 @@
         const params = Object.fromEntries(url_fragment.entries());
         let result = "";
         if ("#access_token" in params) {
-            if ("state" in params && params["state"] == await get_cookie("state")) {
+            if ("state" in params && params["state"] == await get_value("state")) {
                 result = params["#access_token"];
             }
         }
@@ -149,7 +193,7 @@
     {
         let valid = false;
 
-        if (!valid && (access_token = await get_cookie("access_token"))) {
+        if (!valid && (access_token = await get_value("access_token"))) {
             valid = await validate_twitch(access_token);
         }
 
@@ -158,10 +202,10 @@
         }
         
         update_valid(valid);
-        set_cookie("access_token", valid ? access_token : "");
+        set_value("access_token", valid ? access_token : "");
 
-        input_discord_webhook.value = await get_cookie("webhook");
-        textarea_twitch_channels.value = await get_cookie("channels");
+        input_discord_webhook.value = await get_value("webhook");
+        textarea_twitch_channels.value = await get_value("channels");
     }
     
     button_connect_twitch.addEventListener("click", (event) => {
@@ -176,11 +220,11 @@
     });
 
     textarea_twitch_channels.addEventListener("change", (event) => {
-        set_cookie("channels", event.target.value);
+        set_value("channels", event.target.value);
     })
 
     input_discord_webhook.addEventListener("change", (event) => {
-        set_cookie("webhook", event.target.value);
+        set_value("webhook", event.target.value);
     });
 
     on_load();
