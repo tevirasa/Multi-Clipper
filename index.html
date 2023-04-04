@@ -35,19 +35,11 @@
 
 
     async function get_cookie(name) {
-        let cookie = await cookieStore.get(name);
-        if (cookie) { 
-            return cookie.value;
-        }
-        return "";
+        return localStorage.getItem(name);
     }
 
     async function set_cookie(name, value) {
-        return cookieStore.set({
-            "name": name,
-            "value": value,
-            "expires": Date.now() * 2
-        });
+        localStorage.setItem(name, value);
     }
 
     function generate_state() {
@@ -85,24 +77,6 @@
             }
         }
         return result;
-    }
-
-    async function on_load()
-    {
-        let valid = false;
-
-        if (!valid && (access_token = await get_cookie("access_token"))) {
-            valid = await validate_twitch(access_token);
-        }
-
-        if (!valid && (access_token = await check_params_access_token())) {
-            valid = await validate_twitch(access_token);
-        }
-        
-        update_valid(valid);
-        set_cookie("access_token", valid ? access_token : "");
-
-        input_discord_webhook.value = await get_cookie("webhook");
     }
 
     async function get_users(names) {
@@ -170,6 +144,25 @@
     function populate_clips(clips) {
         div_clip_results.innerHTML = clips.map(clip => `${clip.name}: <a href="${clip.clip}">${clip.clip}</a>`).join("<br>")
     }
+
+    async function on_load()
+    {
+        let valid = false;
+
+        if (!valid && (access_token = await get_cookie("access_token"))) {
+            valid = await validate_twitch(access_token);
+        }
+
+        if (!valid && (access_token = await check_params_access_token())) {
+            valid = await validate_twitch(access_token);
+        }
+        
+        update_valid(valid);
+        set_cookie("access_token", valid ? access_token : "");
+
+        input_discord_webhook.value = await get_cookie("webhook");
+        textarea_twitch_channels.value = await get_cookie("channels");
+    }
     
     button_connect_twitch.addEventListener("click", (event) => {
         connect_with_twitch();
@@ -181,6 +174,10 @@
         populate_clips(clips);
         send_webhook(clips);
     });
+
+    textarea_twitch_channels.addEventListener("change", (event) => {
+        set_cookie("channels", event.target.value);
+    })
 
     input_discord_webhook.addEventListener("change", (event) => {
         set_cookie("webhook", event.target.value);
