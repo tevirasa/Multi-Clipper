@@ -30,7 +30,11 @@
     let valid = false;
 
     async function get_cookie(name) {
-        return cookieStore.get(name)
+        let cookie = await cookieStore.get(name);
+        if (cookie) { 
+            return cookie.value;
+        }
+        return "";
     }
 
     async function set_cookie(name, value) {
