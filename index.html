@@ -26,33 +26,31 @@
     const span_connected = document.getElementById("connected");
     const input_discord_webhook = document.getElementById("discord-webhook");
 
-    let cookies = get_cookies();
     let access_token = "";
     let valid = false;
 
-    function get_cookies() {
-        return Object.fromEntries(document.cookie.split('; ').map(c => c.split('=')))
+    async function get_cookie(name) {
+        return cookieStore.get(name)
     }
 
-    function set_cookies(cookies) {
-        document.cookie = Object.entries(cookies).map((k, v) => k + "=" + v).join("; ") + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; Secure";
-    }
-
-    function set_cookie(name, value) {
-        cookies[name] = value;
-        set_cookies(cookies);
+    async function set_cookie(name, value) {
+        return cookieStore.set({
+            "name": name,
+            "value": value,
+            "expires": Date.now() * 2
+        });
     }
 
     function generate_state() {
         return crypto.getRandomValues(new Uint8Array(32)).map(x => x % 10).join("");
     }
 
-    function connect_with_twitch() {
+    async function connect_with_twitch() {
         const url = "https://tevirasa.github.io/Multi-Clipper/";
         const client_id = "fzqu79gr25rwb3mo7yy7yh42q9nwmf";
         const state = generate_state();
         const href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=${url}&scope=clips%3Aedit&state=${state}`;
-        set_cookie("state", state);
+        await set_cookie("state", state);
         window.location.href = href;
     }
 
@@ -73,7 +71,7 @@
         const url_fragment = new URLSearchParams(window.location.hash);
         const params = Object.fromEntries(url_fragment.entries());
         if ("#access_token" in params) {
-            if ("state" in params && params["state"] == cookies["state"]) {
+            if ("state" in params && params["state"] == get_cookie("state")) {
                 return params["#access_token"];
             }
         }
@@ -82,7 +80,7 @@
 
     async function on_load()
     {
-        if (!valid && (access_token = cookies["access_token"])) {
+        if (!valid && (access_token = await get_cookie("access_token"))) {
             valid = await validate_twitch(access_token);
         }
 
