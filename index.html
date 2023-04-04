@@ -30,7 +30,7 @@
     let valid = false;
 
     async function get_cookie(name) {
-        return (await cookieStore.get(name)).value;
+        return cookieStore.get(name)
     }
 
     async function set_cookie(name, value) {
@@ -71,7 +71,7 @@
         const url_fragment = new URLSearchParams(window.location.hash);
         const params = Object.fromEntries(url_fragment.entries());
         if ("#access_token" in params) {
-            if ("state" in params && params["state"] == await get_cookie("state")) {
+            if ("state" in params && params["state"] == (await get_cookie("state")).value) {
                 return params["#access_token"];
             }
         }
@@ -80,7 +80,7 @@
 
     async function on_load()
     {
-        if (!valid && (access_token = await get_cookie("access_token"))) {
+        if (!valid && (access_token = (await get_cookie("access_token")).value)) {
             valid = await validate_twitch(access_token);
         }
 
