@@ -1,0 +1,44 @@
+body {
+    font-size: 18pt;
+    font-family: sans-serif;
+    max-width: 650px;
+    line-height: 1.6;
+    color: #ddd;
+    margin: 20px 200px;
+    background: #111;
+}
+@media (max-width: 850px) {
+    body {
+        margin: 20px;
+    }
+}
+textarea {
+    font-size: 18pt;
+    font-family: sans-serif;
+    width: 100%;
+}
+input {
+    font-size: 18pt;
+    font-family: sans-serif;
+}
+h1,h2,h3 {
+    line-height: 1.2;
+}
+button {
+    font-size: 22pt;
+    font-family: sans-serif;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+a {
+    color: slategray;
+}
+#connected {
+    margin-left: 1em;
+}
+#discord-webhook {
+    margin-left: 1em;
+}
+#clip-results {
+    background: #222;
+}
