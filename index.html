@@ -5,7 +5,7 @@
     <body>
         <h1>Multi Clipper</h1>
         <p>
-            <button id="connect-twitch">Connect with Twitch</button><span id="connected">Connected</span>
+            <button id="connect-twitch">Connect with Twitch</button><span id="connected"></span>
         </p>
         <p>
             <textarea id="twitch-channels" name="twitch-channels" cols="40" rows="8"></textarea>
@@ -69,7 +69,7 @@
         const url_fragment = new URLSearchParams(window.location.hash);
         const params = Object.fromEntries(url_fragment.entries());
         if ("#access_token" in params) {
-            if ("state" in params && params["state"] == get_cookie(state)) {
+            if ("state" in params && params["state"] == get_cookie("state")) {
                 return params["#access_token"];
             }
         }
