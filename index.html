@@ -94,7 +94,7 @@
         }
         
         update_valid(valid);
-        console.log(access_token);
+        set_cookie("access_token", valid ? access_token : "");
     }
     
     button_connect_twitch.addEventListener("click", (event) => {
